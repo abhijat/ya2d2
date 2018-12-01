@@ -143,6 +143,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "md5"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "memchr"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -427,6 +432,7 @@ name = "ya2d2"
 version = "0.1.0"
 dependencies = [
  "linefeed 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "md5 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [metadata]
@@ -449,6 +455,7 @@ dependencies = [
 "checksum fuchsia-zircon-sys 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 "checksum libc 0.2.44 (registry+https://github.com/rust-lang/crates.io-index)" = "10923947f84a519a45c8fefb7dd1b3e8c08747993381adee176d7a82b4195311"
 "checksum linefeed 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "f7e1f518a603fe7dfdd65760e9bc262dad888ae38cc67d36156598a2aa35a2f6"
+"checksum md5 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2cfd7095f695c117f89db0a838710180bc22f1867e2454a5c810a538baee55f9"
 "checksum memchr 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "0a3eb002f0535929f1199681417029ebea04aadc0c7a4224b46be99c7f5d6a16"
 "checksum mortal 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "26153280e6a955881f761354b130aa7838f9983836f3de438ac0a8f22cfab1ff"
 "checksum nix 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a0d95c5fa8b641c10ad0b8887454ebaafa3c92b5cd5350f8fc693adafd178e7b"

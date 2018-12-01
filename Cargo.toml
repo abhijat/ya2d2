@@ -5,3 +5,4 @@ authors = ["Abhijat Malviya <abhijat@ridecell.com>"]
 
 [dependencies]
 linefeed = "0.5"
+md5 = "0.6.0"
