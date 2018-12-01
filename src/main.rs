@@ -20,6 +20,8 @@ fn main() -> io::Result<()> {
     reader.set_prompt("Ya2d2> ")?;
     reader.set_completer(Arc::new(completer));
 
+    let mut todo: Vec<String> = Vec::new();
+
     while let linefeed::ReadResult::Input(data) = reader.read_line()? {
         if data.is_empty() {
             continue;
@@ -28,11 +30,19 @@ fn main() -> io::Result<()> {
         reader.add_history_unique(data.clone());
         let response = process_command(data);
         match response {
-            ParseResponse::ChangePrompt(new_prompt) =>
+            ParseResponse::ChangePromptCommand(new_prompt) =>
                 reader.set_prompt(&new_prompt)?,
 
-            ParseResponse::DisplayString(response) =>
+            ParseResponse::DisplayStringCommand(response) =>
                 println!("{}", response),
+
+            ParseResponse::PushCommand(task) =>
+                todo.push(task),
+
+            ParseResponse::ListCommand(_count) =>
+                todo.iter().for_each(|s| {
+                    println!("* {}", s)
+                }),
         }
     }
 

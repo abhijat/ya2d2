@@ -1,17 +1,20 @@
 use self::ParseResponse::*;
 
 pub enum ParseResponse {
-    ChangePrompt(String),
-    DisplayString(String),
+    ChangePromptCommand(String),
+    DisplayStringCommand(String),
+    PushCommand(String),
+    ListCommand(i64),
 }
 
 pub fn process_command(command: String) -> ParseResponse {
     match command.trim_right().as_ref() {
-        "ls" => DisplayString("heres your list".to_string()),
+        // TODO we want to parse this string and accept a count of items to show
+        "ls" => ListCommand(0),
         s if s.starts_with("push") => parse_push_command(s),
-        "pop" => DisplayString("pop away friendo".to_string()),
+        "pop" => DisplayStringCommand("pop away friendo".to_string()),
         s if s.starts_with("change-prompt") => parse_change_prompt_command(s),
-        _ => DisplayString("unknown command, my good pal".to_string()),
+        _ => DisplayStringCommand("unknown command, my good pal".to_string()),
     }
 }
 
@@ -22,9 +25,9 @@ fn parse_change_prompt_command(command: &str) -> ParseResponse {
     match new_prompt {
         Some(s) => {
             let prompt_string = format!("{} ", s);
-            ChangePrompt(prompt_string)
+            ChangePromptCommand(prompt_string)
         }
-        None => DisplayString("usage: change-prompt <new-prompt>".to_string()),
+        None => DisplayStringCommand("usage: change-prompt <new-prompt>".to_string()),
     }
 }
 
@@ -36,9 +39,9 @@ fn parse_push_command(command: &str) -> ParseResponse {
         .join(" ");
 
     if payload.is_empty() {
-        DisplayString("usage: push <description of the task>".to_string())
+        DisplayStringCommand("usage: push <description of the task>".to_string())
     } else {
-        DisplayString(format!("Let's add the task '{}'", payload))
+        PushCommand(payload)
     }
 }
 
