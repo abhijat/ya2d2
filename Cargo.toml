@@ -1,0 +1,7 @@
+[package]
+name = "ya2d2"
+version = "0.1.0"
+authors = ["Abhijat Malviya <abhijat@ridecell.com>"]
+
+[dependencies]
+linefeed = "0.5"
