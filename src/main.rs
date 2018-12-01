@@ -1,4 +1,5 @@
 extern crate linefeed;
+extern crate md5;
 
 use std::io;
 use std::sync::Arc;
@@ -11,6 +12,7 @@ use cmd::{
 };
 
 mod cmd;
+mod task;
 
 fn main() -> io::Result<()> {
     let reader = linefeed::Interface::new("application")?;
@@ -20,7 +22,7 @@ fn main() -> io::Result<()> {
     reader.set_prompt("Ya2d2> ")?;
     reader.set_completer(Arc::new(completer));
 
-    let mut todo: Vec<String> = Vec::new();
+    let mut todo: Vec<task::Task> = Vec::new();
 
     while let linefeed::ReadResult::Input(data) = reader.read_line()? {
         if data.is_empty() {
@@ -36,12 +38,14 @@ fn main() -> io::Result<()> {
             ParseResponse::DisplayStringCommand(response) =>
                 println!("{}", response),
 
-            ParseResponse::PushCommand(task) =>
-                todo.push(task),
+            ParseResponse::PushCommand(description) => {
+                let task = task::Task::new(description);
+                todo.push(task);
+            }
 
             ParseResponse::ListCommand(_count) =>
                 todo.iter().for_each(|s| {
-                    println!("* {}", s)
+                    println!("{}", s)
                 }),
         }
     }
