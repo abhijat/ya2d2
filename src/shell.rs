@@ -21,32 +21,54 @@ pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Bo
         match response {
             ParseResponse::ChangePromptCommand(new_prompt) =>
                 reader.set_prompt(&new_prompt)?,
+
             ParseResponse::DisplayStringCommand(response) =>
                 println!("{}", response),
+
             ParseResponse::PushCommand(description) => {
                 let task = Task::new(description);
-                let payload = serde_json::to_string(&task)?;
-                tree.set(task.id, payload.as_bytes().to_vec())?;
-                tree.flush()?;
+                match serde_json::to_string(&task) {
+                    Ok(payload) => {
+                        if let Err(err) = tree.set(task.id, payload.as_bytes().to_vec()) {
+                            println!("failed to save task in db: {}", err);
+                        }
+                    }
+                    Err(err) => println!("failed to serialize task before save: {}", err),
+                }
+
+                if let Err(err) = tree.flush() {
+                    println!("failed to flush db: {}", err);
+                }
             }
+
             ParseResponse::ListCommand(_count) =>
                 for pair in tree.iter() {
-                    let (_key, value) = pair?;
-                    let task: Task = serde_json::from_slice(&value)?;
-                    println!("{}", task);
+                    match pair {
+                        Ok((_, value)) => match serde_json::from_slice::<Task>(&value) {
+                            Ok(task) => println!("removed {}", task),
+                            Err(err) => println!("failed to deserialize task: {}", err),
+                        },
+                        Err(err) => println!("failed to read entry: {}", err),
+                    }
                 }
+
             ParseResponse::PopCommand(ref key) =>
                 match tree.del(key)? {
                     None => println!("The key '{}' is not present in the database", key),
                     Some(value) => {
-                        let task: Task = serde_json::from_slice(&value)?;
-                        println!("removed: {}", task);
+                        match serde_json::from_slice::<Task>(&value) {
+                            Ok(task) => println!("removed {}", task),
+                            Err(err) => println!("failed to deserialize task: {}", err),
+                        }
                     }
                 }
         }
     }
 
-    tree.flush()?;
+    if let Err(err) = tree.flush() {
+        println!("failed to flush db: {}", err);
+    }
+
     reader.save_history(hist_path()?)?;
 
     println!("good-bye!");
