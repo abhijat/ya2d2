@@ -1,8 +1,9 @@
 use std::fmt;
 
+#[derive(Serialize, Deserialize)]
 pub struct Task {
-    id: String,
-    description: String,
+    pub id: String,
+    pub description: String,
 }
 
 impl fmt::Display for Task {

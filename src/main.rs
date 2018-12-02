@@ -1,55 +1,27 @@
 extern crate linefeed;
 extern crate md5;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
 
-use std::io;
-use std::sync::Arc;
-
-use cmd::{
-    CommandCompleter,
-    commands,
-    ParseResponse,
-    process_command,
-};
 
 mod cmd;
 mod task;
+mod shell;
+mod initialize;
 
-fn main() -> io::Result<()> {
-    let reader = linefeed::Interface::new("application")?;
 
-    let completer = CommandCompleter::new(commands());
-
-    reader.set_prompt("Ya2d2> ")?;
-    reader.set_completer(Arc::new(completer));
-
-    let mut todo: Vec<task::Task> = Vec::new();
-
-    while let linefeed::ReadResult::Input(data) = reader.read_line()? {
-        if data.is_empty() {
-            continue;
-        }
-
-        reader.add_history_unique(data.clone());
-        let response = process_command(data);
-        match response {
-            ParseResponse::ChangePromptCommand(new_prompt) =>
-                reader.set_prompt(&new_prompt)?,
-
-            ParseResponse::DisplayStringCommand(response) =>
-                println!("{}", response),
-
-            ParseResponse::PushCommand(description) => {
-                let task = task::Task::new(description);
-                todo.push(task);
+fn main() {
+    match initialize::init_db() {
+        Ok(tree) => {
+            let result = shell::start_shell(tree);
+            if let Err(err) = result {
+                eprintln!("failed with error = {:?}", err);
             }
-
-            ParseResponse::ListCommand(_count) =>
-                todo.iter().for_each(|s| {
-                    println!("{}", s)
-                }),
+        }
+        Err(err) => {
+            eprintln!("failed with error = {:?}", err);
         }
     }
-
-    println!("good-bye!");
-    Ok(())
 }
