@@ -13,13 +13,13 @@ mod initialize;
 
 
 fn main() {
-    match initialize::init_db() {
+    match initialize::database() {
         Ok(tree) => {
 
-            let reader = shell::reader()
+            let reader = initialize::reader()
                 .expect("Failed to build shell reader");
 
-            let result = shell::start_shell(tree, reader);
+            let result = shell::start_shell(&tree, &reader);
             if let Err(err) = result {
                 eprintln!("failed with error = {:?}", err);
             }

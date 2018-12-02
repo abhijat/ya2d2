@@ -15,12 +15,16 @@ impl fmt::Display for Task {
 }
 
 impl Task {
-    pub fn new(description: String) -> Self {
-        let digest = md5::compute(&description);
-        let id = format!("{:x}", digest)
+    pub fn task_id(description: &str) -> String {
+        let digest = md5::compute(description);
+        format!("{:x}", digest)
             .chars()
             .take(TASK_ID_LENGTH)
-            .collect::<String>();
+            .collect()
+    }
+
+    pub fn new(description: String) -> Self {
+        let id = Task::task_id(&description);
         Task { id, description }
     }
 }
