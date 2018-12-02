@@ -6,3 +6,8 @@ authors = ["Abhijat Malviya <abhijat@ridecell.com>"]
 [dependencies]
 linefeed = "0.5"
 md5 = "0.6.0"
+sled = "0.16.6"
+dirs = "1.0.4"
+serde = "1.0.80"
+serde_derive = "1.0.80"
+serde_json = "1.0.33"
