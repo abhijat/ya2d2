@@ -5,6 +5,7 @@ pub enum ParseResponse {
     DisplayStringCommand(String),
     PushCommand(String),
     ListCommand(i64),
+    PopCommand(String),
 }
 
 pub fn process_command(command: String) -> ParseResponse {
@@ -12,7 +13,7 @@ pub fn process_command(command: String) -> ParseResponse {
         // TODO we want to parse this string and accept a count of items to show
         "ls" => ListCommand(0),
         s if s.starts_with("push") => parse_push_command(s),
-        "pop" => DisplayStringCommand("pop away friendo".to_string()),
+        s if s.starts_with("pop") => parse_pop_command(s),
         s if s.starts_with("change-prompt") => parse_change_prompt_command(s),
         _ => DisplayStringCommand("unknown command, my good pal".to_string()),
     }
@@ -28,6 +29,15 @@ fn parse_change_prompt_command(command: &str) -> ParseResponse {
             ChangePromptCommand(prompt_string)
         }
         None => DisplayStringCommand("usage: change-prompt <new-prompt>".to_string()),
+    }
+}
+
+fn parse_pop_command(command: &str) -> ParseResponse {
+    let pop_args = command.split_whitespace().collect::<Vec<&str>>();
+    if pop_args.len() != 2 {
+        DisplayStringCommand("usage: pop <key of entry to pop>".to_string())
+    } else {
+        PopCommand(pop_args.get(1).unwrap().to_string())
     }
 }
 
