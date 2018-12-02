@@ -114,4 +114,30 @@ mod tests {
             _ => panic!(INVALID_RESPONSE),
         }
     }
+
+    #[test]
+    fn list_command_response() {
+        match process_command("ls".to_string()) {
+            ListCommand(n) => assert_eq!(n, 0),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
+
+    #[test]
+    fn push_command_response_for_valid_input() {
+        let task = "gone with the wind";
+        match process_command(format!("push {}", task)) {
+            PushCommand(ref s) => assert_eq!(s, task),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
+
+    #[test]
+    fn pop_command_response_for_valid_input() {
+        let key = "abcdef";
+        match process_command(format!("pop {}", key)) {
+            PopCommand(s) => assert_eq!(s, key),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
 }
