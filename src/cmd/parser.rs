@@ -25,6 +25,7 @@ pub fn process_command(command: String) -> ParseResponse {
 }
 
 fn parse_change_prompt_command(command: &str) -> ParseResponse {
+    // TODO we want to fail when the prompt is multi word?
     let new_prompt = command.split_whitespace()
         .skip(1)
         .nth(0);
@@ -137,6 +138,15 @@ mod tests {
         let key = "abcdef";
         match process_command(format!("pop {}", key)) {
             PopCommand(s) => assert_eq!(s, key),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
+
+    #[test]
+    fn change_prompt_response_for_valid_input() {
+        let new_prompt = "x123";
+        match process_command(format!("change-prompt {}", new_prompt)) {
+            ChangePromptCommand(ref s) => assert_eq!(s, &format!("{} ", new_prompt)),
             _ => panic!(INVALID_RESPONSE),
         }
     }
