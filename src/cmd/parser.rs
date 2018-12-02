@@ -1,5 +1,9 @@
 use self::ParseResponse::*;
 
+const PUSH_USAGE: &str = "usage: push <description of the task>";
+const CHANGE_PROMPT_USAGE: &str = "usage: change-prompt <new-prompt>";
+const POP_USAGE: &str = "usage: pop <key of entry to pop>";
+
 pub enum ParseResponse {
     ChangePromptCommand(String),
     DisplayStringCommand(String),
@@ -15,7 +19,7 @@ pub fn process_command(command: String) -> ParseResponse {
         s if s.starts_with("push") => parse_push_command(s),
         s if s.starts_with("pop") => parse_pop_command(s),
         s if s.starts_with("change-prompt") => parse_change_prompt_command(s),
-        _ => DisplayStringCommand("unknown command, my good pal".to_string()),
+        _ => DisplayStringCommand("unknown command :-(".to_string()),
     }
 }
 
@@ -49,7 +53,7 @@ fn parse_push_command(command: &str) -> ParseResponse {
         .join(" ");
 
     if payload.is_empty() {
-        DisplayStringCommand("usage: push <description of the task>".to_string())
+        DisplayStringCommand(PUSH_USAGE.to_string())
     } else {
         PushCommand(payload)
     }
@@ -62,4 +66,35 @@ pub fn commands() -> Vec<String> {
         "pop".to_string(),
         "change-prompt".to_string(),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const INVALID_RESPONSE: &str = "Invalid response variant";
+
+    #[test]
+    fn test_parse_push_command_without_args() {
+        match parse_push_command("push   ") {
+            DisplayStringCommand(ref s) => assert_eq!(s, PUSH_USAGE),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
+
+    #[test]
+    fn test_pop_command_without_args() {
+        match parse_pop_command("pop     ") {
+            DisplayStringCommand(ref s) => assert_eq!(s, POP_USAGE),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
+
+    #[test]
+    fn test_change_prompt_command_without_args() {
+        match parse_change_prompt_command("change-prompt     ") {
+            DisplayStringCommand(ref s) => assert_eq!(CHANGE_PROMPT_USAGE, s),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
 }
