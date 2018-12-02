@@ -91,6 +91,14 @@ mod tests {
     }
 
     #[test]
+    fn test_pop_command_with_too_many_args() {
+        match parse_pop_command("pop one two three four") {
+            DisplayStringCommand(ref s) => assert_eq!(s, POP_USAGE),
+            _ => panic!(INVALID_RESPONSE)
+        }
+    }
+
+    #[test]
     fn test_change_prompt_command_without_args() {
         match parse_change_prompt_command("change-prompt     ") {
             DisplayStringCommand(ref s) => assert_eq!(CHANGE_PROMPT_USAGE, s),
