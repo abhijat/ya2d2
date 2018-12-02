@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/abhijat/ya2d2.svg?branch=master)](https://travis-ci.com/abhijat/ya2d2)
+
 ### Yet Another to-do droid
 
 
