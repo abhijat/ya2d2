@@ -4,9 +4,11 @@
 A command line todo shell
 
 Tasks are stored in [sled](https://github.com/spacejam/sled) for persistence.
-A directory called .ya2d2 is created in your $HOME for storing the tasks. 
 
-A file called .ya2d2_hist stores command history.
+Files created:
+* $HOME/.ya2d2 [a directory containing saved ToDo entries]
+* $HOME/.ya2d2_hist [Command history to preserve commands across sessions]
+
 
 The shell currently supports four commands: 
 
@@ -15,11 +17,16 @@ The shell currently supports four commands:
 * ls [list all entries]
 * change-prompt
 
-There is basic support for tab completion of commands. 
 
-[Linefeed](https://github.com/murarth/linefeed) is used to provide the shell features.
+There is basic support for tab completion of commands as well as the usual readline features. 
+
+These features are provided by the excellent [Linefeed](https://github.com/murarth/linefeed) library.
 
 
 ##### Command line flags
 
 * --no-color : disables colored output
+
+##### OS compatibility
+
+The application is developed on Linux, but it should also work on OSX. 
