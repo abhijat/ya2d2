@@ -22,3 +22,15 @@ impl Task {
         Task { id, description }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_tasks_have_id_of_correct_size() {
+        let payload = "foo bar baz";
+        let task = Task::new(payload.to_string());
+        assert_eq!(task.id.len(), 6);
+    }
+}
