@@ -6,8 +6,14 @@ A command line todo shell
 
 
 Tasks are stored in [sled](https://github.com/spacejam/sled) for persistence.
+A directory called .ya2d2 is created in your $HOME for storing the tasks.
 
-The shell supports three commands: push, pop and ls.
+The shell supports four commands: 
+
+* push [add entry into TODO list]
+* pop [remove entry (using its id as the argument)]
+* ls [list all entries]
+* change-prompt
 
 There is basic support for tab completion of commands. 
 
