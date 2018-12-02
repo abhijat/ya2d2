@@ -6,6 +6,7 @@ use linefeed::{
 };
 
 use cmd::{ParseResponse, process_command};
+use initialize::hist_path;
 use task::Task;
 
 pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Box<Error>>
@@ -46,6 +47,7 @@ pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Bo
     }
 
     tree.flush()?;
+    reader.save_history(hist_path()?)?;
 
     println!("good-bye!");
     Ok(())

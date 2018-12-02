@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use linefeed::{
@@ -11,10 +12,13 @@ use cmd::{
     commands,
 };
 
+const HISTPATH: &str = ".ya2d2_hist";
+const DBPATH: &str = ".ya2d2";
+
 pub fn database() -> Result<sled::Tree, String> {
-    let mut path_to_db = dirs::home_dir()
-        .ok_or("failed to access home".to_string())?;
-    path_to_db.push(".ya2d2");
+    let path_to_db = dirs::home_dir()
+        .ok_or("failed to access home".to_string())?
+        .join(DBPATH);
 
     let tree = sled::Tree::start_default(path_to_db)
         .map_err(|e| e.to_string())?;
@@ -26,8 +30,23 @@ pub fn reader() -> Result<Interface<DefaultTerminal>, Box<Error>> {
 
     let completer = CommandCompleter::new(commands());
 
+    let histpath = dirs::home_dir()
+        .ok_or("failed to access home".to_string())?
+        .join(HISTPATH);
+
+    if histpath.exists() {
+        reader.load_history(histpath)?;
+    }
+
     reader.set_prompt("Ya2d2> ")?;
     reader.set_completer(Arc::new(completer));
 
     Ok(reader)
+}
+
+pub fn hist_path() -> Result<PathBuf, String> {
+    let p = dirs::home_dir()
+        .ok_or("failed to access home dir".to_string())?
+        .join(HISTPATH);
+    Ok(p)
 }
