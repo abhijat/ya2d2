@@ -32,14 +32,14 @@ fn parse_change_prompt_command(command: &str) -> ParseResponse {
             let prompt_string = format!("{} ", s);
             ChangePromptCommand(prompt_string)
         }
-        None => DisplayStringCommand("usage: change-prompt <new-prompt>".to_string()),
+        None => DisplayStringCommand(CHANGE_PROMPT_USAGE.to_string()),
     }
 }
 
 fn parse_pop_command(command: &str) -> ParseResponse {
     let pop_args = command.split_whitespace().collect::<Vec<&str>>();
     if pop_args.len() != 2 {
-        DisplayStringCommand("usage: pop <key of entry to pop>".to_string())
+        DisplayStringCommand(POP_USAGE.to_string())
     } else {
         PopCommand(pop_args.get(1).unwrap().to_string())
     }
