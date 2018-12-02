@@ -3,6 +3,7 @@ use self::ParseResponse::*;
 const PUSH_USAGE: &str = "usage: push <description of the task>";
 const CHANGE_PROMPT_USAGE: &str = "usage: change-prompt <new-prompt>";
 const POP_USAGE: &str = "usage: pop <key of entry to pop>";
+const UNKNOWN_COMMAND: &str = "unknown command :-(";
 
 pub enum ParseResponse {
     ChangePromptCommand(String),
@@ -19,7 +20,7 @@ pub fn process_command(command: String) -> ParseResponse {
         s if s.starts_with("push") => parse_push_command(s),
         s if s.starts_with("pop") => parse_pop_command(s),
         s if s.starts_with("change-prompt") => parse_change_prompt_command(s),
-        _ => DisplayStringCommand("unknown command :-(".to_string()),
+        _ => DisplayStringCommand(UNKNOWN_COMMAND.to_string()),
     }
 }
 
@@ -75,7 +76,7 @@ mod tests {
     const INVALID_RESPONSE: &str = "Invalid response variant";
 
     #[test]
-    fn test_parse_push_command_without_args() {
+    fn parse_push_command_without_args_shows_help() {
         match parse_push_command("push   ") {
             DisplayStringCommand(ref s) => assert_eq!(s, PUSH_USAGE),
             _ => panic!(INVALID_RESPONSE),
@@ -83,7 +84,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pop_command_without_args() {
+    fn pop_command_without_args_shows_help() {
         match parse_pop_command("pop     ") {
             DisplayStringCommand(ref s) => assert_eq!(s, POP_USAGE),
             _ => panic!(INVALID_RESPONSE),
@@ -91,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pop_command_with_too_many_args() {
+    fn pop_command_with_too_many_args_shows_help() {
         match parse_pop_command("pop one two three four") {
             DisplayStringCommand(ref s) => assert_eq!(s, POP_USAGE),
             _ => panic!(INVALID_RESPONSE)
@@ -99,9 +100,17 @@ mod tests {
     }
 
     #[test]
-    fn test_change_prompt_command_without_args() {
+    fn change_prompt_command_without_args_shows_help() {
         match parse_change_prompt_command("change-prompt     ") {
             DisplayStringCommand(ref s) => assert_eq!(CHANGE_PROMPT_USAGE, s),
+            _ => panic!(INVALID_RESPONSE),
+        }
+    }
+
+    #[test]
+    fn unknown_command_response() {
+        match process_command("foo bar".to_string()) {
+            DisplayStringCommand(ref s) => assert_eq!(s, UNKNOWN_COMMAND),
             _ => panic!(INVALID_RESPONSE),
         }
     }
