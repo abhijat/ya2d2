@@ -103,5 +103,28 @@ mod tests {
         start_shell(&db, &reader).unwrap();
         assert_eq!(nth_task_from_db(&db, 0).description, "gone with the wind");
     }
+
+    #[test]
+    fn add_then_remove_task_from_shell_leaves_db_empty() {
+        let db = in_memory_db();
+
+        let task_string = "days of the future past";
+        let task_id = Task::task_id(task_string);
+
+        let push_command = format!("push {}", task_string);
+        let pop_command = format!("pop {}", task_id);
+
+        let commands = vec![
+            push_command.as_str(),
+            pop_command.as_str()
+        ];
+
+        let reader = in_memory_reader(
+            term_with_commands(commands)
+        );
+
+        start_shell(&db, &reader).unwrap();
+        assert_eq!(db.len(), 0);
+    }
 }
 
