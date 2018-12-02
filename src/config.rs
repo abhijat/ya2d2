@@ -4,7 +4,7 @@ use clap::{
 };
 
 pub struct Configuration {
-    no_colors: bool,
+    pub colors_disabled: bool,
 }
 
 impl Configuration {
@@ -16,6 +16,11 @@ impl Configuration {
             .arg(Arg::with_name("no_colors").long("no-color").help("disable colors in the shell"))
             .get_matches();
 
-        Configuration { no_colors: matches.is_present("no_colors") }
+        Configuration { colors_disabled: matches.is_present("no_colors") }
+    }
+
+    #[allow(dead_code)]
+    pub fn default() -> Self {
+        Configuration { colors_disabled: false }
     }
 }

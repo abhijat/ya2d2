@@ -5,12 +5,22 @@ use linefeed::{
     Terminal,
 };
 
-use cmd::{ParseResponse, process_command};
-use initialize::hist_path;
+use cmd::{
+    ParseResponse,
+    process_command,
+};
+use config::Configuration;
 use task::Task;
+use initialize::hist_path;
 
-pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Box<Error>>
+pub fn start_shell<T>(
+    tree: &sled::Tree,
+    reader: &Interface<T>,
+    config: Option<&Configuration>,
+) -> Result<(), Box<Error>>
     where T: Terminal {
+    let display = ::shell::display::Display::new(config);
+
     while let linefeed::ReadResult::Input(data) = reader.read_line()? {
         if data.is_empty() {
             continue;
@@ -23,21 +33,21 @@ pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Bo
                 reader.set_prompt(&new_prompt)?,
 
             ParseResponse::DisplayStringCommand(response) =>
-                println!("{}", response),
+                display.show(&response),
 
             ParseResponse::PushCommand(description) => {
                 let task = Task::new(description);
                 match serde_json::to_string(&task) {
                     Ok(payload) => {
                         if let Err(err) = tree.set(task.id, payload.as_bytes().to_vec()) {
-                            println!("failed to save task in db: {}", err);
+                            display.show(&format!("failed to save task in db: {}", err));
                         }
                     }
-                    Err(err) => println!("failed to serialize task before save: {}", err),
+                    Err(err) => display.show(&format!("failed to serialize task before save: {}", err)),
                 }
 
                 if let Err(err) = tree.flush() {
-                    println!("failed to flush db: {}", err);
+                    display.show(&format!("failed to flush db: {}", err));
                 }
             }
 
@@ -45,20 +55,20 @@ pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Bo
                 for pair in tree.iter() {
                     match pair {
                         Ok((_, value)) => match serde_json::from_slice::<Task>(&value) {
-                            Ok(task) => println!("removed {}", task),
-                            Err(err) => println!("failed to deserialize task: {}", err),
+                            Ok(task) => println!("{}", task),
+                            Err(err) => display.show(&format!("failed to deserialize task: {}", err)),
                         },
-                        Err(err) => println!("failed to read entry: {}", err),
+                        Err(err) => display.show(&format!("failed to read entry: {}", err)),
                     }
                 }
 
             ParseResponse::PopCommand(ref key) =>
                 match tree.del(key)? {
-                    None => println!("The key '{}' is not present in the database", key),
+                    None => display.show(&format!("The key '{}' is not present in the database", key)),
                     Some(value) => {
                         match serde_json::from_slice::<Task>(&value) {
-                            Ok(task) => println!("removed {}", task),
-                            Err(err) => println!("failed to deserialize task: {}", err),
+                            Ok(task) => println!("removed [{}]", task),
+                            Err(err) => display.show(&format!("failed to deserialize task: {}", err)),
                         }
                     }
                 }
@@ -66,7 +76,7 @@ pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Bo
     }
 
     if let Err(err) = tree.flush() {
-        println!("failed to flush db: {}", err);
+        display.show(&format!("failed to flush db: {}", err));
     }
 
     reader.save_history(hist_path()?)?;
@@ -78,6 +88,9 @@ pub fn start_shell<T>(tree: &sled::Tree, reader: &Interface<T>) -> Result<(), Bo
 #[cfg(test)]
 mod tests {
     use linefeed::memory::MemoryTerminal;
+
+    use config::Configuration;
+    use task::Task;
 
     use super::*;
 
@@ -124,7 +137,8 @@ mod tests {
             term_with_commands(vec!["push gone with the wind", ])
         );
 
-        start_shell(&db, &reader).unwrap();
+        let cfg = Configuration::default();
+        start_shell(&db, &reader, Some(&cfg)).unwrap();
         assert_eq!(nth_task_from_db(&db, 0).description, "gone with the wind");
     }
 
@@ -147,7 +161,8 @@ mod tests {
             term_with_commands(commands)
         );
 
-        start_shell(&db, &reader).unwrap();
+        let cfg = Configuration::new();
+        start_shell(&db, &reader, Some(&cfg)).unwrap();
         assert_eq!(db.len(), 0);
     }
 }
