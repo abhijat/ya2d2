@@ -15,7 +15,11 @@ mod initialize;
 fn main() {
     match initialize::init_db() {
         Ok(tree) => {
-            let result = shell::start_shell(tree);
+
+            let reader = shell::reader()
+                .expect("Failed to build shell reader");
+
+            let result = shell::start_shell(tree, reader);
             if let Err(err) = result {
                 eprintln!("failed with error = {:?}", err);
             }

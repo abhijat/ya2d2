@@ -1,5 +1,7 @@
 use std::fmt;
 
+const TASK_ID_LENGTH: usize = 6;
+
 #[derive(Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
@@ -17,7 +19,7 @@ impl Task {
         let digest = md5::compute(&description);
         let id = format!("{:x}", digest)
             .chars()
-            .take(6)
+            .take(TASK_ID_LENGTH)
             .collect::<String>();
         Task { id, description }
     }
@@ -31,6 +33,7 @@ mod tests {
     fn new_tasks_have_id_of_correct_size() {
         let payload = "foo bar baz";
         let task = Task::new(payload.to_string());
-        assert_eq!(task.id.len(), 6);
+
+        assert_eq!(task.id.len(), TASK_ID_LENGTH);
     }
 }

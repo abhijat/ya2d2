@@ -1,10 +1,16 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use linefeed::{
+    DefaultTerminal,
+    Interface,
+    Terminal,
+};
+
 use cmd::{CommandCompleter, commands, ParseResponse, process_command};
 use task::Task;
 
-pub fn start_shell(tree: sled::Tree) -> Result<(), Box<Error>> {
+pub fn reader() -> Result<Interface<DefaultTerminal>, Box<Error>> {
     let reader = linefeed::Interface::new("application")?;
 
     let completer = CommandCompleter::new(commands());
@@ -12,6 +18,11 @@ pub fn start_shell(tree: sled::Tree) -> Result<(), Box<Error>> {
     reader.set_prompt("Ya2d2> ")?;
     reader.set_completer(Arc::new(completer));
 
+    Ok(reader)
+}
+
+pub fn start_shell<T>(tree: sled::Tree, reader: Interface<T>) -> Result<(), Box<Error>>
+    where T: Terminal {
     while let linefeed::ReadResult::Input(data) = reader.read_line()? {
         if data.is_empty() {
             continue;
@@ -22,10 +33,8 @@ pub fn start_shell(tree: sled::Tree) -> Result<(), Box<Error>> {
         match response {
             ParseResponse::ChangePromptCommand(new_prompt) =>
                 reader.set_prompt(&new_prompt)?,
-
             ParseResponse::DisplayStringCommand(response) =>
                 println!("{}", response),
-
             ParseResponse::PushCommand(description) => {
                 let task = Task::new(description);
                 let payload = serde_json::to_string(&task)?;
