@@ -25,10 +25,10 @@ pub fn database() -> Result<sled::Tree, String> {
     Ok(tree)
 }
 
-pub fn reader() -> Result<Interface<DefaultTerminal>, Box<Error>> {
+pub fn reader(db: Arc<sled::Tree>) -> Result<Interface<DefaultTerminal>, Box<Error>> {
     let reader = linefeed::Interface::new("application")?;
 
-    let completer = CommandCompleter::new(commands());
+    let completer = CommandCompleter::new(commands(), db);
 
     let histpath = dirs::home_dir()
         .ok_or("failed to access home".to_string())?

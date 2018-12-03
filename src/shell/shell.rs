@@ -12,9 +12,10 @@ use cmd::{
 use config::Configuration;
 use task::Task;
 use initialize::hist_path;
+use std::sync::Arc;
 
 pub fn start_shell<T>(
-    tree: &sled::Tree,
+    tree: Arc<sled::Tree>,
     reader: &Interface<T>,
     config: Option<&Configuration>,
 ) -> Result<(), Box<Error>>
@@ -94,12 +95,13 @@ mod tests {
 
     use super::*;
 
-    fn in_memory_db() -> sled::Tree {
+    fn in_memory_db() -> Arc<sled::Tree> {
         let config = sled::ConfigBuilder::new()
             .temporary(true)
             .build();
-        sled::Tree::start(config)
-            .expect("failed to build in memory db for testing")
+        let tree = sled::Tree::start(config)
+            .expect("failed to build in memory db for testing");
+        Arc::new(tree)
     }
 
     fn in_memory_reader(terminal: MemoryTerminal) -> Interface<MemoryTerminal> {
@@ -118,7 +120,7 @@ mod tests {
         term
     }
 
-    fn nth_task_from_db(db: &sled::Tree, n: usize) -> Task {
+    fn nth_task_from_db(db: Arc<sled::Tree>, n: usize) -> Task {
         let (_, value) = db.iter()
             .nth(n)
             .unwrap()
@@ -138,8 +140,8 @@ mod tests {
         );
 
         let cfg = Configuration::default();
-        start_shell(&db, &reader, Some(&cfg)).unwrap();
-        assert_eq!(nth_task_from_db(&db, 0).description, "gone with the wind");
+        start_shell(db.clone(), &reader, Some(&cfg)).unwrap();
+        assert_eq!(nth_task_from_db(db.clone(), 0).description, "gone with the wind");
     }
 
     #[test]
@@ -162,7 +164,7 @@ mod tests {
         );
 
         let cfg = Configuration::new();
-        start_shell(&db, &reader, Some(&cfg)).unwrap();
+        start_shell(db.clone(), &reader, Some(&cfg)).unwrap();
         assert_eq!(db.len(), 0);
     }
 }

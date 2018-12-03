@@ -7,6 +7,8 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 
+use std::sync::Arc;
+
 use config::Configuration;
 
 mod cmd;
@@ -21,10 +23,11 @@ fn main() {
 
     match initialize::database() {
         Ok(tree) => {
-            let reader = initialize::reader()
+            let tree = Arc::new(tree);
+            let reader = initialize::reader(tree.clone())
                 .expect("Failed to build shell reader");
 
-            let result = shell::start_shell(&tree, &reader, Some(&config));
+            let result = shell::start_shell(tree.clone(), &reader, Some(&config));
             if let Err(err) = result {
                 eprintln!("failed with error = {:?}", err);
             }
