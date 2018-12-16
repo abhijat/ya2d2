@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use linefeed::{
     Interface,
@@ -6,73 +7,76 @@ use linefeed::{
 };
 
 use cmd::{
-    ParseResponse,
-    process_command,
+    CommandObject,
+    CommandParserResponse,
+    parse_input,
 };
 use config::Configuration;
-use task::Task;
 use initialize::hist_path;
-use std::sync::Arc;
+use task::Task;
 
-pub fn start_shell<T>(
-    tree: Arc<sled::Tree>,
-    reader: &Interface<T>,
-    config: Option<&Configuration>,
-) -> Result<(), Box<Error>>
+pub fn start_shell<T>(tree: Arc<sled::Tree>, reader: &Interface<T>, config: Option<&Configuration>) -> Result<(), Box<Error>>
     where T: Terminal {
+
     let display = ::shell::display::Display::new(config);
 
     while let linefeed::ReadResult::Input(data) = reader.read_line()? {
+        let data = data.trim();
+
         if data.is_empty() {
             continue;
         }
 
-        reader.add_history_unique(data.clone());
-        let response = process_command(data);
+        reader.add_history_unique(data.to_owned());
+        let response = parse_input(data);
         match response {
-            ParseResponse::ChangePromptCommand(new_prompt) =>
-                reader.set_prompt(&new_prompt)?,
+//            ParseResponse::ChangePromptCommand(new_prompt) =>
+//                reader.set_prompt(&new_prompt)?,
 
-            ParseResponse::DisplayStringCommand(response) =>
+            CommandParserResponse::Error(response) =>
                 display.show(&response),
 
-            ParseResponse::PushCommand(description) => {
-                let task = Task::new(description);
-                match serde_json::to_string(&task) {
-                    Ok(payload) => {
-                        if let Err(err) = tree.set(task.id, payload.as_bytes().to_vec()) {
-                            display.show(&format!("failed to save task in db: {}", err));
+            CommandParserResponse::Command(command_object) => {
+                match command_object {
+                    CommandObject::PushCommand { payload, tags: _ } => {
+                        let task = Task::new(payload);
+                        match serde_json::to_string(&task) {
+                            Ok(payload) => {
+                                if let Err(err) = tree.set(task.id, payload.as_bytes().to_vec()) {
+                                    display.show(&format!("failed to save task in db: {}", err));
+                                }
+                            }
+                            Err(err) => display.show(&format!("failed to serialize task before save: {}", err)),
+                        }
+
+                        if let Err(err) = tree.flush() {
+                            display.show(&format!("failed to flush db: {}", err));
                         }
                     }
-                    Err(err) => display.show(&format!("failed to serialize task before save: {}", err)),
-                }
-
-                if let Err(err) = tree.flush() {
-                    display.show(&format!("failed to flush db: {}", err));
+                    CommandObject::PopCommand { ref key } => {
+                        match tree.del(key)? {
+                            None => display.show(&format!("The key '{}' is not present in the database", key)),
+                            Some(value) => {
+                                match serde_json::from_slice::<Task>(&value) {
+                                    Ok(task) => println!("removed [{}]", task),
+                                    Err(err) => display.show(&format!("failed to deserialize task: {}", err)),
+                                }
+                            }
+                        }
+                    }
+                    CommandObject::ListCommand { tags: _ } => {
+                        for pair in tree.iter() {
+                            match pair {
+                                Ok((_, value)) => match serde_json::from_slice::<Task>(&value) {
+                                    Ok(task) => println!("{}", task),
+                                    Err(err) => display.show(&format!("failed to deserialize task: {}", err)),
+                                },
+                                Err(err) => display.show(&format!("failed to read entry: {}", err)),
+                            }
+                        }
+                    }
                 }
             }
-
-            ParseResponse::ListCommand(_count) =>
-                for pair in tree.iter() {
-                    match pair {
-                        Ok((_, value)) => match serde_json::from_slice::<Task>(&value) {
-                            Ok(task) => println!("{}", task),
-                            Err(err) => display.show(&format!("failed to deserialize task: {}", err)),
-                        },
-                        Err(err) => display.show(&format!("failed to read entry: {}", err)),
-                    }
-                }
-
-            ParseResponse::PopCommand(ref key) =>
-                match tree.del(key)? {
-                    None => display.show(&format!("The key '{}' is not present in the database", key)),
-                    Some(value) => {
-                        match serde_json::from_slice::<Task>(&value) {
-                            Ok(task) => println!("removed [{}]", task),
-                            Err(err) => display.show(&format!("failed to deserialize task: {}", err)),
-                        }
-                    }
-                }
         }
     }
 

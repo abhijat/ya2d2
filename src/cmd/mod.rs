@@ -1,8 +1,8 @@
+pub use self::command_objects::{CommandObject, CommandParserResponse};
 pub use self::completer::CommandCompleter;
-pub use self::parser::commands;
-pub use self::parser::ParseResponse;
-pub use self::parser::process_command;
+pub use self::command_objects::commands;
+pub use self::parser::parse_input;
 
 mod completer;
 mod parser;
-
+mod command_objects;

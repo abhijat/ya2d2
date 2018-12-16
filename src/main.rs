@@ -2,6 +2,8 @@ extern crate ansi_term;
 extern crate clap;
 extern crate linefeed;
 extern crate md5;
+#[macro_use]
+extern crate nom;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

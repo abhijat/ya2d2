@@ -38,7 +38,7 @@ pub fn reader(db: Arc<sled::Tree>) -> Result<Interface<DefaultTerminal>, Box<Err
         reader.load_history(histpath)?;
     }
 
-    reader.set_prompt("Ya2d2> ")?;
+    reader.set_prompt(" [[ Ya2D2 ]] ")?;
     reader.set_completer(Arc::new(completer));
 
     Ok(reader)
