@@ -4,7 +4,9 @@
 [![Build Status](https://travis-ci.com/abhijat/ya2d2.svg?branch=master)](https://travis-ci.com/abhijat/ya2d2)
 
 
-A shell to store and interact with Todo entries
+###### A shell to store and interact with Todo entries
+
+[![asciicast demo](https://asciinema.org/a/0XKCD4XjpLOUaublHTwViNadN.svg)](https://asciinema.org/a/0XKCD4XjpLOUaublHTwViNadN)
 
 Tasks are stored in [sled](https://github.com/spacejam/sled) for persistence.
 
